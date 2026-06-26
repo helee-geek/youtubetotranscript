@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube to Transcript Demo</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo">▶ YouTubeToTranscript <span>Demo</span></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-inner">
+      <h1>Youtube to Transcript</h1>
+      <p class="subtitle">
+        Generate YouTube Transcript for FREE. Access caption languages, translate and edit.
+      </p>
+
+      <form id="transcript-form" class="search-row">
+        <input
+          id="url-input"
+          type="text"
+          placeholder="Paste YouTube URL here..."
+          required
+        />
+        <button type="submit" id="submit-btn">Get Free Transcript</button>
+      </form>
+
+      <div class="options-row">
+        <label>
+          Language
+          <select id="language-select">
+            <option value="">Auto (Hindi → English)</option>
+          </select>
+        </label>
+        <label>
+          Translate to
+          <input id="translate-input" type="text" placeholder="e.g. en, hi, fr" />
+        </label>
+        <label class="checkbox-label">
+          <input id="whisper-fallback" type="checkbox" checked />
+          Use faster-whisper fallback
+        </label>
+      </div>
+
+      <div class="features">
+        <span>🌐 Supports Translation</span>
+        <span>🗣️ Multiple Languages</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="container content">
+    <div id="status" class="status hidden"></div>
+
+    <div id="result" class="result hidden">
+      <div class="result-meta">
+        <span id="meta-source"></span>
+        <span id="meta-language"></span>
+      </div>
+      <textarea id="transcript-output" readonly></textarea>
+    </div>
+
+    <div class="info-card">
+      <h2>Libraries used in this demo</h2>
+      <ul>
+        <li><strong>FastAPI</strong> — web framework &amp; REST API</li>
+        <li><strong>youtube-transcript-api</strong> — fetch YouTube captions (primary, fast)</li>
+        <li><strong>faster-whisper</strong> — speech-to-text fallback when captions are missing</li>
+        <li><strong>yt-dlp</strong> — download audio for Whisper fallback</li>
+        <li><strong>uvicorn</strong> — ASGI server</li>
+      </ul>
+    </div>
+  </main>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

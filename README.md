@@ -77,20 +77,13 @@ This happens when you test too many times. YouTube returns **HTTP 429** and bloc
 ### Quick fixes (try in order)
 
 1. **Wait 30–60 minutes** without making any requests.
-2. **Add browser cookies** (best for local testing):
-   - Install Chrome extension: [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
-   - Open [youtube.com](https://youtube.com) while logged in
-   - Export cookies → save as `cookies.txt` in this project folder
-   - Restart the server
-3. **Slow down testing** — click "Get Transcript" once, wait for result.
-4. **Use mobile hotspot** — switches to a different IP.
-5. **Optional proxy** — set in `.env`:
+2. **Slow down testing** — click "Get Transcript" once, wait for result.
+3. **Use mobile hotspot** — switches to a different IP.
+4. **Optional proxy** — set in `.env`:
    ```bash
    HTTP_PROXY=http://user:pass@proxy-host:port
    HTTPS_PROXY=http://user:pass@proxy-host:port
    ```
-
-The app now auto-falls back to **yt-dlp** when the transcript API is blocked (uses `cookies.txt` if present).
 
 ## Notes
 

@@ -20,7 +20,7 @@ from services.cache import (
     set_cached_source,
     set_cached_translation,
 )
-from services.config import COOKIES_FILE, HTTP_PROXY, HTTPS_PROXY, IP_BLOCK_HELP
+from services.config import HTTP_PROXY, HTTPS_PROXY, IP_BLOCK_HELP
 from services.ytdlp_service import fetch_transcript_ytdlp, list_languages_ytdlp
 
 VIDEO_ID_PATTERNS = [
@@ -367,12 +367,7 @@ def get_transcript(
         set_cached_source(video_id, language, result)
         return result
     except (IpBlocked, RequestBlocked) as exc:
-        cookie_hint = (
-            f" Found cookies.txt at {COOKIES_FILE}."
-            if COOKIES_FILE.is_file()
-            else " Add a cookies.txt file (see README)."
-        )
-        raise ValueError(f"{IP_BLOCK_HELP}{cookie_hint}") from exc
+        raise ValueError(IP_BLOCK_HELP) from exc
     except (NoTranscriptFound, TranscriptsDisabled):
         if not use_whisper_fallback:
             raise ValueError(

@@ -2,7 +2,7 @@ import re
 import tempfile
 from pathlib import Path
 
-from services.config import COOKIES_FILE
+from services.config import IP_BLOCK_HELP
 
 
 def ytdlp_options(**extra) -> dict:
@@ -11,9 +11,22 @@ def ytdlp_options(**extra) -> dict:
         "no_warnings": True,
         "noprogress": True,
     }
-    if COOKIES_FILE.is_file():
-        opts["cookiefile"] = str(COOKIES_FILE)
     return {**opts, **extra}
+
+
+def _is_youtube_block_error(message: str) -> bool:
+    lowered = message.lower()
+    return any(
+        phrase in lowered
+        for phrase in (
+            "sign in to confirm",
+            "not a bot",
+            "cookies",
+            "429",
+            "too many requests",
+            "blocking requests",
+        )
+    )
 
 
 def parse_vtt_file(path: Path) -> tuple[str, list[dict]]:
@@ -124,8 +137,6 @@ def list_languages_ytdlp(video_id: str) -> list[dict]:
 def fetch_transcript_ytdlp(video_id: str, language: str | None = None) -> dict:
     import yt_dlp
 
-    from services.config import IP_BLOCK_HELP
-
     url = f"https://www.youtube.com/watch?v={video_id}"
     preferred_langs = [language] if language else ["hi", "en"]
 
@@ -162,7 +173,9 @@ def fetch_transcript_ytdlp(video_id: str, language: str | None = None) -> dict:
             }
     except Exception as exc:
         message = str(exc)
-        if "429" in message or "Too Many Requests" in message or "blocking" in message.lower():
+        if _is_youtube_block_error(message):
+            raise ValueError(IP_BLOCK_HELP) from exc
+        if "429" in message or "Too Many Requests" in message:
             raise ValueError(IP_BLOCK_HELP) from exc
         raise
 

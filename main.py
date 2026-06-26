@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from youtube_transcript_api._errors import IpBlocked, RequestBlocked
 
+from services.config import IP_BLOCK_HELP
 from services.transcript_service import (
     extract_video_id,
     get_transcript,
@@ -80,14 +81,7 @@ async def api_transcript(body: TranscriptRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except (IpBlocked, RequestBlocked) as exc:
-        from services.config import COOKIES_FILE, IP_BLOCK_HELP
-
-        cookie_hint = (
-            f" Found cookies.txt at {COOKIES_FILE}."
-            if COOKIES_FILE.is_file()
-            else " Add cookies.txt (see README)."
-        )
-        raise HTTPException(status_code=429, detail=f"{IP_BLOCK_HELP}{cookie_hint}") from exc
+        raise HTTPException(status_code=429, detail=IP_BLOCK_HELP) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Transcription failed: {exc}") from exc
 
@@ -101,14 +95,7 @@ async def api_languages(url: str):
         languages = list_available_languages(video_id)
         return {"ok": True, "video_id": video_id, "languages": languages}
     except (IpBlocked, RequestBlocked) as exc:
-        from services.config import COOKIES_FILE, IP_BLOCK_HELP
-
-        cookie_hint = (
-            f" Found cookies.txt at {COOKIES_FILE}."
-            if COOKIES_FILE.is_file()
-            else " Add cookies.txt (see README)."
-        )
-        raise HTTPException(status_code=429, detail=f"{IP_BLOCK_HELP}{cookie_hint}") from exc
+        raise HTTPException(status_code=429, detail=IP_BLOCK_HELP) from exc
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

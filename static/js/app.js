@@ -144,7 +144,15 @@ form.addEventListener("submit", async (event) => {
     showResult(data);
     showStatus("Transcript ready!", "success");
   } catch (error) {
-    showStatus(error.message, "error");
+    let message = error.message;
+    if (
+      document.body.dataset.cloudHost === "true" &&
+      /block|bot|403|429|forbidden|sign in to confirm|tunnel/i.test(message)
+    ) {
+      message +=
+        " Run ./scripts/run-demo-tunnel.sh on your laptop for a free working demo URL.";
+    }
+    showStatus(message, "error");
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Get Free Transcript";

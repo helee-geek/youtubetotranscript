@@ -12,7 +12,6 @@ from youtube_transcript_api._errors import (
     TranscriptsDisabled,
     VideoUnavailable,
 )
-from youtube_transcript_api.proxies import GenericProxyConfig
 
 from services.cache import (
     get_cached_source,
@@ -20,7 +19,6 @@ from services.cache import (
     set_cached_source,
     set_cached_translation,
 )
-from services.config import HTTP_PROXY, HTTPS_PROXY, IP_BLOCK_HELP
 from services.ytdlp_service import fetch_transcript_ytdlp, list_languages_ytdlp
 
 VIDEO_ID_PATTERNS = [
@@ -39,13 +37,7 @@ def extract_video_id(url_or_id: str) -> str | None:
 
 
 def get_youtube_api() -> YouTubeTranscriptApi:
-    proxy_config = None
-    if HTTP_PROXY or HTTPS_PROXY:
-        proxy_config = GenericProxyConfig(
-            http_url=HTTP_PROXY or HTTPS_PROXY,
-            https_url=HTTPS_PROXY or HTTP_PROXY,
-        )
-    return YouTubeTranscriptApi(proxy_config=proxy_config)
+    return YouTubeTranscriptApi()
 
 
 def list_available_languages(video_id: str) -> list[dict]:
@@ -366,8 +358,6 @@ def get_transcript(
         result = fetch_transcript_with_fallback(video_id, language, translate_to=None)
         set_cached_source(video_id, language, result)
         return result
-    except (IpBlocked, RequestBlocked) as exc:
-        raise ValueError(IP_BLOCK_HELP) from exc
     except (NoTranscriptFound, TranscriptsDisabled):
         if not use_whisper_fallback:
             raise ValueError(

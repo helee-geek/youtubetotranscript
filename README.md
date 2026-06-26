@@ -60,6 +60,45 @@ Open [http://localhost:8000](http://localhost:8000)
 
 API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
+## Free fix: "YouTube blocked this request" on Render / cloud
+
+YouTube blocks **datacenter IPs** (Render, Railway, etc.). There is no free proxy that fixes that on cloud hosting.
+
+**Free tool: [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) (`cloudflared`)** — run the app on your laptop (home IP works) and get a public URL to share.
+
+### Setup (one time)
+
+```bash
+pip install -r requirements.txt
+
+# Install cloudflared
+sudo apt install cloudflared          # Ubuntu/Debian
+# brew install cloudflared            # macOS
+```
+
+### Before your demo
+
+```bash
+chmod +x scripts/run-demo-tunnel.sh
+./scripts/run-demo-tunnel.sh
+```
+
+Share the `https://….trycloudflare.com` URL it prints. **Keep the terminal open** during the presentation.
+
+| | Render (free) | Tunnel demo (free) |
+|---|---|---|
+| Cost | $0 | $0 |
+| YouTube works | ❌ Blocked | ✅ Home IP |
+| Laptop on during demo | No | Yes |
+
+## Fix: "YouTube is blocking requests" on localhost
+
+If **your own IP** is temporarily blocked from too many tests:
+
+1. **Wait 30–60 minutes** without making requests.
+2. **Slow down** — click "Get Transcript" once, wait for the result.
+3. **Use mobile hotspot** — different IP.
+
 ## API example
 
 ```bash
@@ -69,21 +108,6 @@ curl -X POST http://localhost:8000/api/transcript \
 ```
 
 Optional fields: `language`, `translate_to`, `use_whisper_fallback`.
-
-## Fix: "YouTube is blocking requests from your IP"
-
-This happens when you test too many times. YouTube returns **HTTP 429** and blocks your IP temporarily.
-
-### Quick fixes (try in order)
-
-1. **Wait 30–60 minutes** without making any requests.
-2. **Slow down testing** — click "Get Transcript" once, wait for result.
-3. **Use mobile hotspot** — switches to a different IP.
-4. **Optional proxy** — set in `.env`:
-   ```bash
-   HTTP_PROXY=http://user:pass@proxy-host:port
-   HTTPS_PROXY=http://user:pass@proxy-host:port
-   ```
 
 ## Notes
 

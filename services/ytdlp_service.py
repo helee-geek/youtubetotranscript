@@ -2,9 +2,6 @@ import re
 import tempfile
 from pathlib import Path
 
-from services.config import IP_BLOCK_HELP
-
-
 def ytdlp_options(**extra) -> dict:
     opts = {
         "quiet": True,
@@ -12,21 +9,6 @@ def ytdlp_options(**extra) -> dict:
         "noprogress": True,
     }
     return {**opts, **extra}
-
-
-def _is_youtube_block_error(message: str) -> bool:
-    lowered = message.lower()
-    return any(
-        phrase in lowered
-        for phrase in (
-            "sign in to confirm",
-            "not a bot",
-            "cookies",
-            "429",
-            "too many requests",
-            "blocking requests",
-        )
-    )
 
 
 def parse_vtt_file(path: Path) -> tuple[str, list[dict]]:
@@ -140,44 +122,36 @@ def fetch_transcript_ytdlp(video_id: str, language: str | None = None) -> dict:
     url = f"https://www.youtube.com/watch?v={video_id}"
     preferred_langs = [language] if language else ["hi", "en"]
 
-    try:
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            tmp_path = Path(tmp_dir)
-            ydl_opts = ytdlp_options(
-                skip_download=True,
-                writesubtitles=True,
-                writeautomaticsub=True,
-                subtitleslangs=preferred_langs,
-                subtitlesformat="vtt/best",
-                outtmpl=str(tmp_path / "%(id)s"),
-            )
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        ydl_opts = ytdlp_options(
+            skip_download=True,
+            writesubtitles=True,
+            writeautomaticsub=True,
+            subtitleslangs=preferred_langs,
+            subtitlesformat="vtt/best",
+            outtmpl=str(tmp_path / "%(id)s"),
+        )
 
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
 
-            vtt_file = _pick_lang_file(tmp_path, video_id, language)
-            if not vtt_file:
-                raise ValueError("No subtitle file found via yt-dlp.")
+        vtt_file = _pick_lang_file(tmp_path, video_id, language)
+        if not vtt_file:
+            raise ValueError("No subtitle file found via yt-dlp.")
 
-            text, snippets = parse_vtt_file(vtt_file)
-            lang_code = language or _lang_from_filename(vtt_file.name) or "unknown"
+        text, snippets = parse_vtt_file(vtt_file)
+        lang_code = language or _lang_from_filename(vtt_file.name) or "unknown"
 
-            return {
-                "video_id": video_id,
-                "source": "yt_dlp_captions",
-                "language": lang_code,
-                "language_code": lang_code,
-                "is_generated": ".auto" in vtt_file.name or lang_code.endswith("-orig"),
-                "text": text,
-                "snippets": snippets,
-            }
-    except Exception as exc:
-        message = str(exc)
-        if _is_youtube_block_error(message):
-            raise ValueError(IP_BLOCK_HELP) from exc
-        if "429" in message or "Too Many Requests" in message:
-            raise ValueError(IP_BLOCK_HELP) from exc
-        raise
+        return {
+            "video_id": video_id,
+            "source": "yt_dlp_captions",
+            "language": lang_code,
+            "language_code": lang_code,
+            "is_generated": ".auto" in vtt_file.name or lang_code.endswith("-orig"),
+            "text": text,
+            "snippets": snippets,
+        }
 
 
 def _lang_from_filename(name: str) -> str | None:

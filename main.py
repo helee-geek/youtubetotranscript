@@ -8,7 +8,6 @@ from pydantic import BaseModel, Field
 
 from youtube_transcript_api._errors import IpBlocked, RequestBlocked
 
-from services.hosting import DEMO_TUNNEL_HINT, is_cloud_host
 from services.transcript_service import (
     extract_video_id,
     get_transcript,
@@ -39,19 +38,9 @@ class TranscriptRequest(BaseModel):
     )
 
 
-def _youtube_block_detail(exc: Exception) -> str:
-    if is_cloud_host():
-        return DEMO_TUNNEL_HINT
-    return str(exc)
-
-
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse(
-        request,
-        "index.html",
-        {"is_cloud_host": is_cloud_host()},
-    )
+    return templates.TemplateResponse(request, "index.html")
 
 
 class TranslateRequest(BaseModel):
@@ -89,14 +78,10 @@ async def api_transcript(body: TranscriptRequest):
         )
         return {"ok": True, **result}
     except ValueError as exc:
-        if is_cloud_host() and _looks_like_youtube_block(str(exc)):
-            raise HTTPException(status_code=429, detail=DEMO_TUNNEL_HINT) from exc
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except (IpBlocked, RequestBlocked) as exc:
-        raise HTTPException(status_code=429, detail=_youtube_block_detail(exc)) from exc
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
     except Exception as exc:
-        if is_cloud_host() and _looks_like_youtube_block(str(exc)):
-            raise HTTPException(status_code=429, detail=DEMO_TUNNEL_HINT) from exc
         raise HTTPException(status_code=500, detail=f"Transcription failed: {exc}") from exc
 
 
@@ -109,27 +94,9 @@ async def api_languages(url: str):
         languages = list_available_languages(video_id)
         return {"ok": True, "video_id": video_id, "languages": languages}
     except (IpBlocked, RequestBlocked) as exc:
-        raise HTTPException(status_code=429, detail=_youtube_block_detail(exc)) from exc
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
     except Exception as exc:
-        if is_cloud_host() and _looks_like_youtube_block(str(exc)):
-            raise HTTPException(status_code=429, detail=DEMO_TUNNEL_HINT) from exc
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-
-def _looks_like_youtube_block(message: str) -> bool:
-    lowered = message.lower()
-    return any(
-        phrase in lowered
-        for phrase in (
-            "blocked",
-            "bot",
-            "403",
-            "429",
-            "forbidden",
-            "sign in to confirm",
-            "too many requests",
-        )
-    )
 
 
 if __name__ == "__main__":

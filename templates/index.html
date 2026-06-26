@@ -6,15 +6,7 @@
   <title>YouTube to Transcript Demo</title>
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body{% if is_cloud_host %} data-cloud-host="true"{% endif %}>
-  {% if is_cloud_host %}
-  <div class="cloud-banner">
-    <strong>YouTube blocks cloud servers (Render, etc.).</strong>
-    Free fix for your demo: run
-    <code>./scripts/run-demo-tunnel.sh</code>
-    on your laptop and share the <code>trycloudflare.com</code> URL it prints.
-  </div>
-  {% endif %}
+<body>
   <header class="site-header">
     <div class="container header-inner">
       <div class="logo">▶ YouTubeToTranscript <span>Demo</span></div>
